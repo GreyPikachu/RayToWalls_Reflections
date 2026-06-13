@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RayToWalls Simulator</title>
+    <link rel="stylesheet" href="/src/style.css">
+  </head>
+  <body>
+    <!-- Кнопка открытия/закрытия панели -->
+    <button id="sidebar-toggle" class="btn-toggle">☰ Меню</button>
+    
+    <!-- Выдвижная боковая панель -->
+    <div id="sidebar" class="sidebar closed">
+      <h2>Инструменты</h2>
+
+      <!-- Категория: Фигуры -->
+      <h3 class="category-title">Фигуры</h3>
+      <div class="tools-grid">
+        <div class="tool-card" id="tool-line">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><line x1="5" y1="35" x2="35" y2="5" stroke="white" stroke-width="3"/></svg></div>
+          <div class="tool-label">Стена</div>
+        </div>
+        <div class="tool-card" id="tool-circle">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" stroke="white" stroke-width="3" fill="none"/></svg></div>
+          <div class="tool-label">Круг</div>
+        </div>
+        <div class="tool-card" id="tool-rect">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="20" stroke="white" stroke-width="3" fill="none"/></svg></div>
+          <div class="tool-label">Квадрат</div>
+        </div>
+        <div class="tool-card" id="tool-triangle">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><polygon points="20,6 36,32 4,32" stroke="white" stroke-width="3" fill="none"/></svg></div>
+          <div class="tool-label">Треугольник</div>
+        </div>
+      </div>
+
+      <!-- Категория: Функции -->
+      <h3 class="category-title">Математика</h3>
+      <div class="tools-grid">
+        <div class="tool-card" id="tool-sin">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><path d="M 0 20 Q 10 0, 20 20 T 40 20" stroke="#00f2fe" stroke-width="3" fill="none"/></svg></div>
+          <div class="tool-label">Синус</div>
+        </div>
+        <div class="tool-card" id="tool-parabola">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><path d="M 5 5 Q 20 45, 35 5" stroke="#00f2fe" stroke-width="3" fill="none"/></svg></div>
+          <div class="tool-label">Парабола</div>
+        </div>
+        <div class="tool-card" id="tool-custom">
+          <div class="tool-icon"><svg viewBox="0 0 40 40"><text x="20" y="26" fill="#00f2fe" font-size="16" font-weight="bold" font-family="monospace" text-anchor="middle">f(x)</text></svg></div>
+          <div class="tool-label">Своя</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Холст симулятора -->
+    <canvas id="canvas"></canvas>
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
