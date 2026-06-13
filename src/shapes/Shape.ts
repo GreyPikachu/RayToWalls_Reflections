@@ -14,4 +14,6 @@ export class Intersection {
 export interface Shape {
     // Если луч пересекает фигуру, возвращаем данные о пересечении. Если мимо — возвращаем null.
     intersect(ray: Ray): Intersection | null;
+    distanceTo(point: Vector2D): number; // Возвращает расстояние до курсора мыши (для выделения)
+    move(delta: Vector2D): void;         // Сдвигает фигуру на заданный вектор
 }

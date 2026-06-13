@@ -39,4 +39,14 @@ export class Circle implements Shape {
 
         return new Intersection(point, normal, t);
     }
+
+    distanceTo(point: Vector2D): number {
+        const dist = point.sub(this.center).magnitude();
+        if (dist <= this.radius) return 0; // Клик внутри круга
+        return dist - this.radius;         // Клик снаружи
+    }
+
+    move(delta: Vector2D): void {
+        this.center = this.center.add(delta);
+    }
 }

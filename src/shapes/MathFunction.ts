@@ -74,4 +74,18 @@ export class MathFunction implements Shape {
 
         return null;
     }
+
+    distanceTo(point: Vector2D): number {
+        // Упрощенная проверка: вертикальное расстояние от мыши до графика
+        return Math.abs(this.f(point.x) - point.y);
+    }
+
+    move(delta: Vector2D): void {
+        // Невероятно крутая математика: динамическое смещение функции f(x)
+        // Новая функция g(x) = f(x - dx) + dy
+        const oldF = this.f;
+        const oldDf = this.df;
+        this.f = (x) => oldF(x - delta.x) + delta.y;
+        this.df = (x) => oldDf(x - delta.x); // Производная смещается только по оси X
+    }
 }

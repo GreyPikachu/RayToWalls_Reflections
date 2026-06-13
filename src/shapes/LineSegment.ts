@@ -50,4 +50,19 @@ export class LineSegment implements Shape {
 
         return null; // Пересечения нет
     }
+
+    distanceTo(point: Vector2D): number {
+        // Кратчайшее расстояние от точки до отрезка (математика векторов)
+        const l2 = this.a.sub(this.b).dot(this.a.sub(this.b));
+        if (l2 == 0) return point.sub(this.a).magnitude();
+        let t = point.sub(this.a).dot(this.b.sub(this.a)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        const projection = this.a.add(this.b.sub(this.a).multiply(t));
+        return point.sub(projection).magnitude();
+    }
+
+    move(delta: Vector2D): void {
+        this.a = this.a.add(delta);
+        this.b = this.b.add(delta);
+    }
 }

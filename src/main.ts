@@ -5,6 +5,7 @@ import { Ray } from './math/Ray';
 import { LineSegment } from './shapes/LineSegment';
 import { MathFunction } from './shapes/MathFunction';
 import { Circle } from './shapes/Circle';
+import type { Shape } from './shapes/Shape';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -49,13 +50,38 @@ engine.shapes.push(
 
 // --- СОСТОЯНИЕ РЕДАКТОРА ---
 type Tool = 'pointer' | 'line' | 'circle' | 'rect' | 'triangle' | 'sin' | 'parabola' | 'custom';
-let currentTool: Tool = 'circle'; // Для теста сразу включим Круг
+let currentTool: Tool = 'pointer'; // Режим мыши по умолчанию
 
 let isMouseDown = false;
 let dragStartPos: Vector2D | null = null;
+let lastMousePos: Vector2D | null = null;
+
 let tempCircle: Circle | null = null; // Круг, который мы сейчас рисуем (тянем)
+let activeShape: Shape | null = null; // Выделенная фигура (для перемещения и удаления)
 
 let mousePos = new Vector2D(w / 2, h / 2);
+
+// Подключаем кнопки боковой панели
+document.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('click', () => {
+        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        
+        const id = card.id;
+        if (id === 'tool-pointer') currentTool = 'pointer';
+        else if (id === 'tool-circle') currentTool = 'circle';
+        else if (id === 'tool-line') currentTool = 'line';
+        // (Остальные добавим позже)
+    });
+});
+
+// Удаление фигуры на Backspace / Delete
+window.addEventListener('keydown', (e) => {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && activeShape) {
+        engine.shapes = engine.shapes.filter(s => s !== activeShape);
+        activeShape = null; // Сбрасываем выделение после удаления
+    }
+});
 
 window.addEventListener('mousedown', (e) => {
     // Игнорируем клики по панели интерфейса
@@ -65,9 +91,24 @@ window.addEventListener('mousedown', (e) => {
     
     isMouseDown = true;
     dragStartPos = new Vector2D(e.clientX, e.clientY);
+    lastMousePos = new Vector2D(e.clientX, e.clientY);
 
-    if (currentTool === 'circle') {
-        // Начинаем рисовать новый круг, радиус пока 1
+    if (currentTool === 'pointer') {
+        // Ищем фигуру, по которой кликнули (в пределах 15 пикселей от курсора)
+        let closestShape: Shape | null = null;
+        let minDist = 15;
+
+        for (const shape of engine.shapes) {
+            const dist = shape.distanceTo(dragStartPos);
+            if (dist < minDist) {
+                minDist = dist;
+                closestShape = shape;
+            }
+        }
+        activeShape = closestShape; // Выделяем найденную фигуру
+    } else if (currentTool === 'circle') {
+        activeShape = null;
+        // Начинаем рисовать новый круг
         tempCircle = new Circle(dragStartPos, 1);
     }
 });
@@ -76,23 +117,31 @@ window.addEventListener('mousemove', (e) => {
     mousePos.x = e.clientX;
     mousePos.y = e.clientY;
 
-    if (isMouseDown && dragStartPos) {
-        if (currentTool === 'circle' && tempCircle) {
+    if (isMouseDown && dragStartPos && lastMousePos) {
+        if (currentTool === 'pointer' && activeShape) {
+            // --- ПЕРЕМЕЩЕНИЕ ФИГУРЫ ---
+            const delta = mousePos.sub(lastMousePos);
+            activeShape.move(delta);
+        } else if (currentTool === 'circle' && tempCircle) {
             // Динамически меняем радиус при перетаскивании мыши
             tempCircle.radius = mousePos.sub(dragStartPos).magnitude();
         }
+    }
+    
+    if (isMouseDown) {
+        lastMousePos = new Vector2D(mousePos.x, mousePos.y);
     }
 });
 
 window.addEventListener('mouseup', () => {
     isMouseDown = false;
     
-    // Если мы закончили рисовать круг и он не слишком маленький
     if (currentTool === 'circle' && tempCircle && tempCircle.radius > 5) {
-        engine.shapes.push(tempCircle); // Добавляем его в физический движок навсегда
+        engine.shapes.push(tempCircle);
     }
     tempCircle = null;
     dragStartPos = null;
+    lastMousePos = null;
 });
 
 // --- ГЛАВНЫЙ ЦИКЛ ОТРИСОВКИ (VIEW) ---
@@ -101,20 +150,19 @@ function render() {
     ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Рисуем стены
-    ctx.strokeStyle = '#555';
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    
+    // 2. Отрисовываем все физические объекты сцены
     for (const shape of engine.shapes) {
+        // Делаем линии толще, если фигура выделена мышкой
+        ctx.lineWidth = (shape === activeShape) ? 4 : 2;
+
         if (shape instanceof LineSegment) {
-            ctx.strokeStyle = '#555';
+            ctx.strokeStyle = (shape === activeShape) ? '#fff' : '#555';
             ctx.beginPath();
             ctx.moveTo(shape.a.x, shape.a.y);
             ctx.lineTo(shape.b.x, shape.b.y);
             ctx.stroke();
         } else if (shape instanceof MathFunction) {
-            ctx.strokeStyle = '#00f2fe'; // Красивый цвет для графиков
+            ctx.strokeStyle = (shape === activeShape) ? '#fff' : '#00f2fe';
             ctx.beginPath();
             ctx.moveTo(0, shape.f(0));
             // Рисуем график по точкам слева направо
@@ -123,7 +171,7 @@ function render() {
             }
             ctx.stroke();
         } else if (shape instanceof Circle) {
-            ctx.strokeStyle = '#ff9a9e'; // Розовый для кругов
+            ctx.strokeStyle = (shape === activeShape) ? '#fff' : '#ff9a9e';
             ctx.beginPath();
             ctx.arc(shape.center.x, shape.center.y, shape.radius, 0, Math.PI * 2);
             ctx.stroke();
